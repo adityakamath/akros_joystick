@@ -1,0 +1,1 @@
+joystick: {ljoy_lr: 0, ljoy_ud: 1, l2: 2, rjoy_lr: 3, rjoy_ud: 4, r2: 5, lpad_lr: 6, lpad_ud: 7, buttonA: 0, buttonB: 1, buttonX: 2, buttonY: 3, l1: 4, r1: 5, select: 6, start: 7, home: 8, ljoy_button: 9, rjoy_button: 10}
