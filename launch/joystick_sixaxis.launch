@@ -10,6 +10,6 @@
 </node>
 
 <!-- Load joystick_sixaxis node -->
-<node pkg="joystick_sixaxis" type="joystick_sixaxis_node" name="joy_node"/>
+<node pkg="akros_joystick" type="akros_joystick_node" name="joy_node"/>
 
 </launch>
