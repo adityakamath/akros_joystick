@@ -1,2 +1,2 @@
-# ros_joystick_sixaxis
+# akros_joystick
 ROS teleop/control package for a six-axis controller
