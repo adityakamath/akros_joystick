@@ -1,7 +1,7 @@
 <launch>
 
 <!-- Load config files -->
-<rosparam command="load" file="$(find joystick_sixaxis)/config/config_joystick.yaml" />
+<rosparam command="load" file="$(find akros_joystick)/config/config_joystick.yaml" />
 
 <!-- Load joy node -->
 <node pkg="joy" type="joy_node" name="joy_driver" respawn="true">
