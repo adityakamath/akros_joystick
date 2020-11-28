@@ -17,6 +17,7 @@ github.com/adityakamath
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Joy.h>
+#include <std_msgs/Int8.h>
 
 class TeleopRobot
 {
@@ -28,16 +29,18 @@ private:
     
     ros::NodeHandle nh;
     
-    int l_axis, a_axis, l_scale_axis, a_scale_axis, const_l_button, const_l_up, const_l_down, on_off_button;
+    int l_axis, a_axis, l_scale_axis, a_scale_axis, const_l_button, const_l_up, const_l_down, on_off_button, select_button, max_modes;
     
     double l_scale         = 1;
     double a_scale         = 1; 
     double const_l_scale   = 1;
     bool   start_pressed   = false;
     bool   const_l_pressed = false;
+    int    select_pressed  = 0;
     
     ros::Publisher  vel_pub;
     ros::Subscriber joy_sub;
+    ros::Publisher  mode_pub;
 };
 
 TeleopRobot::TeleopRobot():
@@ -48,7 +51,9 @@ TeleopRobot::TeleopRobot():
     const_l_button(3),
     const_l_up(1),
     const_l_down(2),
-    on_off_button(7)
+    on_off_button(7),
+    select_button(6),
+    max_modes(3)
 {
     if(nh.hasParam("/joystick")){
         nh.param("start",    on_off_button);              //Turn Teleop On/Off         = start     :            = 0/1
@@ -56,15 +61,19 @@ TeleopRobot::TeleopRobot():
         nh.param("rjoy_lr",  a_axis, a_axis);             //Angular axis               = right joy : left/right = +1/-1      
         nh.param("lpad_ud",  l_scale_axis, l_scale_axis); //Linear Scale Axis          = left pad  : up/down    = +1/-1
         nh.param("lpad_lr",  a_scale_axis, a_scale_axis); //Angular Scale Axis         = left pad  : left/right = +1/-1
-        nh.param("buttonY",  const_l_button);             //Constant Linear On/Off     = triangle  :            = 0/1
-        nh.param("buttonB",  const_l_up);                 //Constant Linear Scale Up   = triangle  :            = 0/1
-        nh.param("buttonX",  const_l_down);               //Constant Linear Scale Down = triangle  :            = 0/1
+        nh.param("buttonY",  const_l_button);             //Constant Linear On/Off     = Y         :            = 0/1
+        nh.param("buttonB",  const_l_up);                 //Constant Linear Scale Up   = B         :            = 0/1
+        nh.param("buttonX",  const_l_down);               //Constant Linear Scale Down = X         :            = 0/1
+        nh.param("select",   select_button);              //Select modes               = select    :            = 0/1
+        nh.param("nmodes",   max_modes);                  //Maximum number of modes    = nmodes    : default = 3
         ROS_INFO("[JOY] Loaded config from parameter server");
     }
         
-    vel_pub = nh.advertise<geometry_msgs::Twist>("/joy_node/cmd_vel", 1);
+    vel_pub  = nh.advertise<geometry_msgs::Twist>("/joy_node/cmd_vel", 1);
     
-    joy_sub = nh.subscribe<sensor_msgs::Joy>("joy", 10, &TeleopRobot::joyCallback, this);
+    joy_sub  = nh.subscribe<sensor_msgs::Joy>("joy", 5, &TeleopRobot::joyCallback, this);
+        
+    mode_pub = nh.advertise<std_msgs::Int8>("/joy_node/mode", 1);
         
 }
 
@@ -79,36 +88,48 @@ void TeleopRobot::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     // scale up/down const linear speeds by 10%
     const_l_scale  += (joy->buttons[const_l_up] - joy->buttons[const_l_down])*0.10;
     
-    if(joy->buttons[on_off_button] == 1)
-    {
+    // set on/off flag
+    if(joy->buttons[on_off_button] == 1){
         start_pressed = !start_pressed;
     }
     
-    if(joy->buttons[const_l_button] == 1)
-    {
+    // set select mode flag
+    if(joy->buttons[select_button] == 1){
+        if(select_pressed < max_modes){
+            select_pressed++;
+        }
+        else{
+            select_pressed = 1;
+        }
+    }
+    
+    // select constant linear vel flag
+    if(joy->buttons[const_l_button] == 1){
         const_l_pressed = !const_l_pressed;
     }
     
-    if(!start_pressed) //Teleop off
-    {
+    // publish velocities
+    if(!start_pressed){ //Teleop off
         twist.linear.x  = 0.0;
         twist.angular.z = 0.0;
     }
-    else //Teleop on
-    {
-        if(!const_l_pressed) //Normal operation
-        {
+    else{ //Teleop on
+        if(!const_l_pressed){ //Normal operation
             twist.linear.x  = l_scale*joy->axes[l_axis];
             twist.angular.z = a_scale*joy->axes[a_axis];
         }
-        else //Const linear speed
-        {
+        else{ //Const linear speed
             twist.linear.x  = const_l_scale;
             twist.angular.z = a_scale*joy->axes[a_axis];
         }
     }
-    
     vel_pub.publish(twist);
+    
+    // publish mode
+    std_msgs::Int8 mode_msg;
+    mode_msg.data = select_pressed;
+    ROS_DEBUG("[JOY] Selected mode: %d", mode_msg.data);
+    mode_pub.publish(mode_msg);
 }
 
 int main(int argc, char** argv)
