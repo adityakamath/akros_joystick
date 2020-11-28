@@ -31,8 +31,8 @@ private:
     
     int l_axis, a_axis, l_scale_axis, a_scale_axis, const_l_button, const_l_up, const_l_down, on_off_button, select_button, max_modes;
     
-    double l_scale         = 1;
-    double a_scale         = 1; 
+    double l_scale         = 1.30; //calibrared values, will change for each robot platform
+    double a_scale         = 1.90; //calibrated values, will change for each robot platform
     double const_l_scale   = 1;
     bool   start_pressed   = false;
     bool   const_l_pressed = false;
@@ -116,7 +116,9 @@ void TeleopRobot::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     else{ //Teleop on
         if(!const_l_pressed){ //Normal operation
             twist.linear.x  = l_scale*joy->axes[l_axis];
+            ROS_DEBUG("l_scale = %f", l_scale);
             twist.angular.z = a_scale*joy->axes[a_axis];
+            ROS_DEBUG("a_scale = %f", a_scale);
         }
         else{ //Const linear speed
             twist.linear.x  = const_l_scale;
