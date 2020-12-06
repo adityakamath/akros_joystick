@@ -129,7 +129,12 @@ void TeleopRobot::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     
     // publish mode
     std_msgs::Int8 mode_msg;
-    mode_msg.data = select_pressed;
+    if(!start_pressed){
+        mode_msg.data = 0;
+    }
+    else{
+        mode_msg.data = select_pressed;
+    }
     ROS_DEBUG("[JOY] Selected mode: %d", mode_msg.data);
     mode_pub.publish(mode_msg);
 }
