@@ -94,7 +94,7 @@ void TeleopRobot::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     }
     
     // set select mode flag
-    if(joy->buttons[select_button] == 1){
+    if(joy->buttons[select_button] == 1 && start_pressed){
         if(select_pressed < max_modes){
             select_pressed++;
         }
@@ -131,11 +131,12 @@ void TeleopRobot::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     std_msgs::Int8 mode_msg;
     if(!start_pressed){
         mode_msg.data = 0;
+        ROS_DEBUG("[JOY] Selected mode: Joystick OFF");
     }
     else{
         mode_msg.data = select_pressed;
+        ROS_DEBUG("[JOY] Selected mode: %d", mode_msg.data);
     }
-    ROS_DEBUG("[JOY] Selected mode: %d", mode_msg.data);
     mode_pub.publish(mode_msg);
 }
 
