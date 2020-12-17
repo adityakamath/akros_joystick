@@ -3,13 +3,13 @@
 <!-- Load config files -->
 <rosparam command="load" file="$(find akros_joystick)/config/config_joystick.yaml" />
 
-<!-- Load joy node -->
+<!-- Load Joy node -->
 <node pkg="joy" type="joy_node" name="joy_driver" respawn="true">
     <param name="dev" type="string" value="/dev/input/js0" />
     <param name="deadzone" value="0.12"/>
 </node>
 
-<!-- Load joystick_sixaxis node -->
-<node pkg="akros_joystick" type="akros_joystick_node" name="joy_node"/>
+<!-- Load AKROS Joystick node -->
+<node pkg="akros_joystick" type="akros_joystick_node" name="joy_node" output="screen"/> 
 
 </launch>
