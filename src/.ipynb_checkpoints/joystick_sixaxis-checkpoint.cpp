@@ -1,6 +1,6 @@
 /*
 ==========
-ROS node for control using a SixAxis Joystick
+ROS node for control using a SixAxis Joystick. The ROS joy package is needed.
 This code implements the following functionality:
   > Configure joystick / map keys
   > Subscribe to joystick input from Joy package
