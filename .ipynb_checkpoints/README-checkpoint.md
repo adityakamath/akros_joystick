@@ -10,6 +10,7 @@ ROS node for a 3rd party SixAxis controller to be used as the main remote contro
 * Additional features like start/stop, mode select
   * Start button for starting/stopping the controller
   * Select button to loop between 3 modes - teleop, fully autonomous, semi-autonomous (linear velocity provided by controller)
+  * R1/R2 used for UP/DOWN functionality of the loader attachment
 This node requires the ROS Joy (generic Linux joystick driver in ROS) package to be installed
 
 ### Configuration
@@ -22,6 +23,7 @@ The node subscribes to the `/joy` topic,  which includes the values of each butt
 There are two publishers:
 * `/joy_node/cmd_vel`: Twist output like the teleop_twist_keyboard package
 * `/joy_node/mode`: Int8 output - 0, 1, 2, 3 to indicate 'undefined' and the 3 driving modes
+* `/joy_node/loader`: Int8 output - 0, 1, 2 to indicate 'stop', 'up' and 'down' for the loader attachment
 
 ### Launch
 A launch file is provided:
