@@ -29,7 +29,7 @@ private:
     
     ros::NodeHandle nh;
     
-    int l_axis, a_axis, l_scale_axis, a_scale_axis, const_l_button, const_l_up, const_l_down, on_off_button, select_button, max_modes, load_up, load_down;
+    int l_axis, a_axis, l_scale_axis, a_scale_axis, const_l_button, const_l_up, const_l_down, on_off_button, select_button, max_modes;
     
     double l_scale         = 1.30; //calibrared values, will change for each robot platform
     double a_scale         = 1.90; //calibrated values, will change for each robot platform
@@ -37,12 +37,10 @@ private:
     bool   start_pressed   = false;
     bool   const_l_pressed = false;
     int    select_pressed  = 0;
-    int    loader_pressed  = 0;
     
     ros::Publisher  vel_pub;
     ros::Subscriber joy_sub;
     ros::Publisher  mode_pub;
-    ros::Publisher  loader_pub;
 };
 
 TeleopRobot::TeleopRobot():
@@ -56,8 +54,6 @@ TeleopRobot::TeleopRobot():
     on_off_button(7),
     select_button(6),
     max_modes(3),
-    load_up(5),
-    load_down(5)
 {
     if(nh.hasParam("/joystick")){
         nh.param("start",    on_off_button);              //Turn Teleop On/Off         = start     :            = 0/1
@@ -70,8 +66,6 @@ TeleopRobot::TeleopRobot():
         nh.param("buttonX",  const_l_down);               //Constant Linear Scale Down = X         :            = 0/1
         nh.param("select",   select_button);              //Select modes               = select    :            = 0/1
         nh.param("nmodes",   max_modes);                  //Maximum number of modes    = nmodes    : default    = 3
-        nh.param("r1",       load_up);                    //Move loader up             = R1        :            = 0/1
-        nh.param("r2",       load_down);                  //Move loader down           = R2        :            = +1/-1
         ROS_INFO("[JOY] Loaded config from parameter server");
     }
         
@@ -81,8 +75,6 @@ TeleopRobot::TeleopRobot():
         
     mode_pub = nh.advertise<std_msgs::Int8>("/joy_node/mode", 1);
         
-    loader_pub = nh.advertise<std_msgs::Int8>("/joy_node/loader", 1);
-        
 }
 
 void TeleopRobot::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
@@ -91,7 +83,7 @@ void TeleopRobot::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     
     // scale up/down linear/angular speed by 10%
     l_scale += joy->axes[l_scale_axis]*0.10;
-    a_scale -= joy->axes[a_scale_axis]*0.10;  //direction reversed  
+    a_scale -= joy->axes[a_scale_axis]*0.10;  //direction reversed 
     
     // scale up/down const linear speeds by 10%
     const_l_scale  += (joy->buttons[const_l_up] - joy->buttons[const_l_down])*0.10;
@@ -114,17 +106,6 @@ void TeleopRobot::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     // select constant linear vel flag
     if(joy->buttons[const_l_button] == 1){
         const_l_pressed = !const_l_pressed;
-    }
-    
-    // set loader flag
-    if(joy->buttons[load_up] == 1 && joy->axes[load_down] == 1){
-        loader_pressed = 1;
-    }
-    else if(joy->axes[load_down] == -1 && joy->buttons[load_up] == 0){
-        loader_pressed = 2;
-    }
-    else{
-        loader_pressed = 0;
     }
     
     // publish velocities
@@ -157,22 +138,6 @@ void TeleopRobot::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
         ROS_DEBUG("[JOY] Selected mode: %d", mode_msg.data);
     }
     mode_pub.publish(mode_msg);
-    
-    // publish loader command
-    std_msgs::Int8 loader_msg;
-    if(!loader_pressed){
-        loader_msg.data = 0;
-    }
-    else{
-        loader_msg.data = loader_pressed;
-        if(loader_msg.data == 1){
-            ROS_DEBUG("[JOY] Loader up");
-        }
-        else if(loader_msg.data == 2){
-            ROS_DEBUG("[JOY] Loader down");
-        } 
-    }
-    loader_pub.publish(loader_msg);
 }
 
 int main(int argc, char** argv)
