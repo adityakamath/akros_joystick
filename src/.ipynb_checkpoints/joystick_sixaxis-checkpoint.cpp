@@ -53,7 +53,7 @@ TeleopRobot::TeleopRobot():
     const_l_down(2),
     on_off_button(7),
     select_button(6),
-    max_modes(3),
+    max_modes(3)
 {
     if(nh.hasParam("/joystick")){
         nh.param("start",    on_off_button);              //Turn Teleop On/Off         = start     :            = 0/1
@@ -65,7 +65,7 @@ TeleopRobot::TeleopRobot():
         nh.param("buttonB",  const_l_up);                 //Constant Linear Scale Up   = B         :            = 0/1
         nh.param("buttonX",  const_l_down);               //Constant Linear Scale Down = X         :            = 0/1
         nh.param("select",   select_button);              //Select modes               = select    :            = 0/1
-        nh.param("nmodes",   max_modes);                  //Maximum number of modes    = nmodes    : default    = 3
+        nh.param("nmodes",   max_modes);                  //Maximum number of modes    = nmodes    : default = 3
         ROS_INFO("[JOY] Loaded config from parameter server");
     }
         
@@ -83,7 +83,7 @@ void TeleopRobot::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
     
     // scale up/down linear/angular speed by 10%
     l_scale += joy->axes[l_scale_axis]*0.10;
-    a_scale -= joy->axes[a_scale_axis]*0.10;  //direction reversed 
+    a_scale -= joy->axes[a_scale_axis]*0.10;  //direction reversed  
     
     // scale up/down const linear speeds by 10%
     const_l_scale  += (joy->buttons[const_l_up] - joy->buttons[const_l_down])*0.10;
